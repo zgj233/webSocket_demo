@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>聊天室</title>
+    <link href="./bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css">
+    <link href="./main.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<div class="container-fluid">
+    <div id="chat" class="row chat">
+        <div class="col-md-offset-2 col-md-8 chat-panel">
+            <div class="chat-body">
+                <p :class="client.role" v-for="(client,c) in clientRows">{{client.txt}}</p>
+            </div>
+
+
+            <textarea v-model="v_input" class="form-control" @keyup.enter="submit" rows="5" placeholder="点击回车发送">
+
+            </textarea>
+        </div>
+
+
+    </div>
+</div>
+<script src="vue.min.js"></script>
+<script src="jquery-3.2.0.min.js"></script>
+<script src="js.cookie.js"></script>
+<script src="socket.io.js"></script>
+<script>
+    var socket;
+    var chat = new Vue({
+        el:'#chat',
+        data(){
+            return{
+                clientRows:[],
+                serverRows:[],
+                v_input:null,
+                sockId:null,
+                cookieUser:null,
+            }
+        },
+        methods:{
+            submit(){
+                var self = this;
+                socket.emit('client_msg', self.cookieUser,self.sockId,self.v_input,function(data){
+                    var data = {
+                        role:'client',
+                        txt:self.v_input
+                    };
+                    self.clientRows.push(data);
+                    self.v_input = null;
+                });
+            },
+        },
+        created(){
+            socket = io({path:'/chat_socket'});         //长连接只需创建一次
+            this.cookieUser = Cookies.get('user');
+        },
+
+        mounted(){
+            var self = this;
+            socket.on('connect',function(){
+                self.sockId = socket.id;
+            });
+            socket.on('broadcast',function(msg){
+                var data = {
+                    role:'server',
+                    txt:msg
+                };
+                self.clientRows.push(data);
+            });
+
+        }
+    })
+</script>
+</body>
+</html>

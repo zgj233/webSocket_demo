@@ -4,41 +4,107 @@
     <meta charset="UTF-8">
     <title>webSocket练习</title>
     <link href="./bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css">
+    <link href="./font-awesome/css/font-awesome.css" rel="stylesheet" type="text/css">
+    <link href="./main.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-<div class="container-fluid">
+<div id="app" class="container-fluid">
     <div class="row">
-        <div class="col-sm-12">
-            haha
+        <transition>
+            <div v-if="if_alert" class="col-sm-6 col-sm-offset-3 alert-box">
+                <div :class="alert_class">{{alert}}</div>
+            </div>
+        </transition>
+    </div>
+    <div class="row main">
+        <div class="col-sm-4 col-sm-offset-4">
+            <div class="panel panel-primary">
+                <div class="panel-heading">登录</div>
+                <div class="panel-body">
+                    <div class="input-group">
+                        <div class="input-group-addon">
+                            帐号
+                        </div>
+                        <input class="form-control" v-model="user">
+                    </div>
+                    <div class="input-group">
+                        <div class="input-group-addon">
+                            密码
+                        </div>
+                        <input class="form-control" v-model="pwd">
+                    </div>
+                </div>
+                <div class="panel-footer text-right">
+                    <button @click="sign_in" class="btn btn-default">
+                        <i class="fa fa-sign-in"></i>登录
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 <script src="vue.min.js"></script>
 <script src="jquery-3.2.0.min.js"></script>
+<script src="js.cookie.js"></script>
 <script>
     var app = new Vue({
-        el:'body',
+        el: '#app',
         data(){
-            return{
-
+            return {
+                user: null,
+                pwd: '',
+                alert_class: null,
+                alert: null,
+                if_alert: false
             }
         },
-        methods:{
-
+        methods: {
+            sign_in(){
+                var self = this;
+                signIn(self);
+            }
         },
         created(){
             doReady();
         }
 
-    })
-    function doReady(){
+    });
+
+    function signIn(obj) {
+        var _data = {
+            User: obj.user,
+            Pwd: obj.pwd
+        };
         $.ajax({
-            url:'/user',
-            type:'get',
-            success:function(res){
-                console.log(res);
+            url: '/signIn',
+            type: 'post',
+            data: _data,
+            success: function (res) {
+                switch (res.status) {
+                    case 200:
+                        obj.alert_class += 'alert alert-success';
+                        obj.alert = '登录成功';
+                        Cookies.set('user',res.cookie);
+                        break;
+                    case 500:
+                        obj.alert_class += 'alert alert-danger';
+                        obj.alert = '登录失败, 密码与帐户不匹配';
+                        break;
+                    case 404:
+                        obj.alert_class = 'alert alert-warning';
+                        obj.alert = '没有这个帐户';
+                        break;
+                }
+                obj.if_alert = true;
+                setTimeout(function(){
+                    obj.if_alert = false;
+                },2000);
             }
-        })
+        });
+
+
+    }
+    function doReady() {
     }
 </script>
 </body>
