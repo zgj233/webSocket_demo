@@ -7,7 +7,7 @@
 
 Redis 的配置我写在Conf 文件夹里面了
 
-##### 实现流程
+#### 实现流程
 
 前端访问index.html登录页面，输入帐号和密码之后，会去Redis里面访问user表，通过name 与 pwd 判断用户是否具有登录权限。如果有，将token从Redis里面取出来，传给前端，前端使用Cookie保存。页面跳转到 chat.html。
 
